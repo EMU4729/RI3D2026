@@ -4,16 +4,19 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Velocity;
 
+import static edu.wpi.first.units.Units.Radians;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.controls.PositionVoltage;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import frc.robot.Robot;
 import frc.robot.constants.TurretConstants;
 
 public class TurretSub extends SubsystemBase {
@@ -23,17 +26,27 @@ public class TurretSub extends SubsystemBase {
   private final TalonFXConfiguration shooterMotorConfig;
   private final TalonFX hoodMotor;
   private final TalonFXConfiguration hoodMotorConfig;
+
+  private double simRotatorAngle;
+  private double simRotatorSpeed = 0;
+  private double simShooterSpeed;
+  private double simHoodAngle;
   
   /** Creates new TurretSub */
   public TurretSub() {
     // Initialize each of the motors + encoders needed
     rotatorMotor = new TalonFX(TurretConstants.ROTATOR_CANID);
     rotatorMotorConfig = new TalonFXConfiguration();
+    rotatorMotorConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+    rotatorMotorConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 0.5;
+    rotatorMotorConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+    rotatorMotorConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = -0.5;
     rotatorMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     rotatorMotorConfig.Feedback.SensorToMechanismRatio = 1; // DriveConstants.DRIVE_GEAR_RATIO;
     rotatorMotorConfig.Slot0.kP = TurretConstants.ROTATOR_P;
     rotatorMotorConfig.Slot0.kI = TurretConstants.ROTATOR_I;
     rotatorMotorConfig.Slot0.kD = TurretConstants.ROTATOR_D;
+    // rotatorMotorConfig.SoftwareLimitSwitch.
     rotatorMotor.getConfigurator().apply(rotatorMotorConfig);
 
     shooterMotor = new TalonFX(TurretConstants.SHOOTER_CANID);
@@ -55,26 +68,30 @@ public class TurretSub extends SubsystemBase {
   }
 
   // TODO: not sure whether this will automatically use the PID control, or need to set up close loop control
+  // Setting this up like a linear system may work better in terms of preventing overrotation :)
   public void setRotatorAngle(Angle newRotatorAngle) {
-    rotatorMotor.setPosition(newRotatorAngle);
+    simRotatorAngle = newRotatorAngle.in(Radians);
+    // simRotatorSpeed = 0; // TODO: start simulating this once PID is simulated
+    rotatorMotor.setControl(new PositionVoltage(newRotatorAngle));
   }
 
   public Angle getRotatorAngle() {
     return rotatorMotor.getPosition().getValue();
-    // return Angle.ofBaseUnits(0, Radians);
   }
 
   // Set the amount of power into the shooter wheels (-1.0 to 1.0)
-  public void setShooterSpeed(Double shooterSpeed) {
+  public void setShooterSpeed(double shooterSpeed) {
+    simShooterSpeed = shooterSpeed;
     shooterMotor.set(shooterSpeed);
   }
 
-  public Double getShooterSpeed() {
+  public double getShooterSpeed() {
     return shooterMotor.get();
   }
 
   public void setHoodAngle(Angle newHoodAngle) {
-    hoodMotor.setPosition(newHoodAngle);
+    simHoodAngle = newHoodAngle.in(Radians);
+    hoodMotor.setControl(new PositionVoltage(newHoodAngle));
   }
 
   public Angle getHoodAngle() {
@@ -89,6 +106,7 @@ public class TurretSub extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     // TODO: handle simulation (doesn't have whole module support like the swerve module)
+    
   }
 
   public void setupSmartDash() {
@@ -97,12 +115,12 @@ public class TurretSub extends SubsystemBase {
       public void initSendable(SendableBuilder builder) {
         builder.setSmartDashboardType("Turret");
 
-        builder.addDoubleProperty("Rotator Angle (rad)", () -> rotatorMotor.getPosition().getValueAsDouble(), null);
-        builder.addDoubleProperty("Rotator Angular Velocity (rad/s)", () -> rotatorMotor.getVelocity().getValueAsDouble(), null);
+        builder.addDoubleProperty("Rotator Angle (rad)", () -> Robot.isSimulation() ? simRotatorAngle : rotatorMotor.getPosition().getValueAsDouble(), null);
+        builder.addDoubleProperty("Rotator Angular Velocity (rad/s)", () -> Robot.isSimulation() ? simRotatorSpeed : rotatorMotor.getVelocity().getValueAsDouble(), null);
         
-        builder.addDoubleProperty("Hood Angle (rad)", () -> hoodMotor.getPosition().getValueAsDouble(), null);
+        builder.addDoubleProperty("Hood Angle (rad)", () -> Robot.isSimulation() ? simHoodAngle : hoodMotor.getPosition().getValueAsDouble(), null);
      
-        builder.addDoubleProperty("Shooter Power", () -> shooterMotor.get(), null);
+        builder.addDoubleProperty("Shooter Power", () -> Robot.isSimulation() ? simShooterSpeed : shooterMotor.get(), null);
       }
     });
   }
