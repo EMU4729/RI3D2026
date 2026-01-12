@@ -40,6 +40,7 @@ import frc.robot.Subsystems;
 import frc.robot.utils.photon.PhotonBridge;
 import frc.robot.utils.photon.PhotonCameraPoseEstimator;
 import frc.robot.constants.DriveConstants;
+import frc.robot.utils.TurretTargettingCalc;
 import frc.robot.utils.pathplanner.AutoBuilderFix;
 
 public class NavigationSub extends SubsystemBase {
@@ -109,7 +110,6 @@ public class NavigationSub extends SubsystemBase {
     }
   }
 
-  private TargetingSub ts = new TargetingSub();
   private short logRateCounter = 0;
   @Override
   public void periodic() {
@@ -126,8 +126,6 @@ public class NavigationSub extends SubsystemBase {
       LogPoseYaw.append(pose.getRotation().getRadians());
       LogPoseDriveYaw.append(getDriveHeading().in(Radians));
     }
-
-    ts.calcTurret();
   }
 
   /**

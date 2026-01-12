@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.utils;
 
 
 import static edu.wpi.first.units.Units.Degrees;
@@ -16,19 +16,16 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Subsystems;
 
-public class TargetingSub extends SubsystemBase{
+public class TurretTargettingCalc{
   private final Transform3d turretTranslation = new Transform3d(new Translation3d(0.3,0.3,0.4), new Rotation3d(0,0,0));
 
   private final List<DistanceSample> samples = Arrays.asList(
@@ -36,7 +33,7 @@ public class TargetingSub extends SubsystemBase{
       new DistanceSample(1, Degrees.of(45), Meters.of(15))
   );
 
-  public TargetingSub(){
+  public TurretTargettingCalc(){
 
   }
 
@@ -55,7 +52,7 @@ public class TargetingSub extends SubsystemBase{
     Subsystems.nav.drawFieldObject("Turret", 
         new Pose2d(
             turretTranslation.getTranslation().toTranslation2d(), 
-            transformToTarget.getRotation().toRotation2d()), 
+            transformToTarget.getRotation().toRotation2d().plus(Subsystems.nav.getPose().getRotation())), 
         true);
 
     return new TurretCommand(Radians.of(transformToTarget.getRotation().getZ()), 
@@ -111,7 +108,8 @@ public class TargetingSub extends SubsystemBase{
 
     Rotation2d targetYaw =  
         targetLoc
-        .minus(robotPose.getTranslation()).toTranslation2d().getAngle();
+        .minus(robotPose.getTranslation()).toTranslation2d().getAngle()
+        .minus(robotPose.getRotation().toRotation2d());
 
     Pose3d targetPose = new Pose3d(targetLoc, new Rotation3d(0,0,targetYaw.getRadians()));
     //System.out.println(targetLoc.minus(robotPose.getTranslation()).toTranslation2d().getAngle().getDegrees() +" "+

@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.AimAtTargetCommand;
 import frc.robot.commands.auto.AutoProvider;
 import frc.robot.commands.teleop.TeleopProvider;
 
@@ -63,6 +64,8 @@ public class RobotContainer {
     // --- Manual Controls ---
     OI.pilot.start()
         .onTrue(new InstantCommand(Subsystems.nav::zeroDriveHeading, Subsystems.drive));
+
+    OI.pilot.b().whileTrue(new AimAtTargetCommand());
   }
 
   /**
