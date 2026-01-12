@@ -34,10 +34,12 @@ public class TurretSub extends SubsystemBase {
     rotatorMotorConfig.Slot0.kP = TurretConstants.ROTATOR_P;
     rotatorMotorConfig.Slot0.kI = TurretConstants.ROTATOR_I;
     rotatorMotorConfig.Slot0.kD = TurretConstants.ROTATOR_D;
-    
+    rotatorMotor.getConfigurator().apply(rotatorMotorConfig);
+
     shooterMotor = new TalonFX(TurretConstants.SHOOTER_CANID);
     shooterMotorConfig = new TalonFXConfiguration();
     shooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake; // Coast?
+    shooterMotor.getConfigurator().apply(shooterMotorConfig);
 
     // Controls the pitch of the shooter, by changing the angle of hood
     hoodMotor = new TalonFX(TurretConstants.SHOOTER_CANID);
@@ -47,7 +49,8 @@ public class TurretSub extends SubsystemBase {
     hoodMotorConfig.Slot0.kP = TurretConstants.HOOD_P;
     hoodMotorConfig.Slot0.kI = TurretConstants.HOOD_I;
     hoodMotorConfig.Slot0.kD = TurretConstants.HOOD_D;
-    
+    hoodMotor.getConfigurator().apply(hoodMotorConfig);
+
     setupSmartDash();
   }
 

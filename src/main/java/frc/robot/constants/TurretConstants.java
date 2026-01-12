@@ -22,9 +22,9 @@ public class TurretConstants {
   // no values for shooter as this is planned to be driven using a lookup table + power value
 
   // Rotation Limits for rotator and hood
-  public static final Angle MIN_ROTATOR_ANGLE = Angle.ofBaseUnits(- Math.PI / 2, Radians);
-  public static final Angle MAX_ROTATOR_ANGLE = Angle.ofBaseUnits(Math.PI / 2, Radians);
+  public static final Angle MIN_ROTATOR_ANGLE = Radians.of(- Math.PI / 2);
+  public static final Angle MAX_ROTATOR_ANGLE = Radians.of(Math.PI / 2);
 
-  public static final Angle MIN_HOOD_ANGLE = Angle.ofBaseUnits(0, null);
-  public static final Angle MAX_HOOD_ANGLE = Angle.ofBaseUnits(Math.PI / 4, Radians);
+  public static final Angle MIN_HOOD_ANGLE = Radians.of(0);
+  public static final Angle MAX_HOOD_ANGLE = Radians.of(Math.PI / 4);
 }
