@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Velocity;
@@ -10,6 +12,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.sim.TalonFXSimState;
 import com.ctre.phoenix6.controls.PositionVoltage;
 
 import edu.wpi.first.util.sendable.Sendable;
@@ -17,7 +20,9 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.Subsystems;
 import frc.robot.constants.TurretConstants;
+import frc.robot.utils.TurretTargettingCalc;
 
 public class TurretSub extends SubsystemBase {
   private final TalonFX rotatorMotor;
@@ -31,6 +36,10 @@ public class TurretSub extends SubsystemBase {
   private double simRotatorSpeed = 0;
   private double simShooterSpeed;
   private double simHoodAngle;
+
+  private final TalonFXSimState rotatorMotorSim;
+  private final TalonFXSimState shooterMotorSim;
+  private final TalonFXSimState hoodMotorSim;
   
   /** Creates new TurretSub */
   public TurretSub() {
@@ -42,7 +51,7 @@ public class TurretSub extends SubsystemBase {
     rotatorMotorConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
     rotatorMotorConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = -0.5;
     rotatorMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    rotatorMotorConfig.Feedback.SensorToMechanismRatio = 1; // DriveConstants.DRIVE_GEAR_RATIO;
+    rotatorMotorConfig.Feedback.SensorToMechanismRatio = TurretConstants.rotatorMotorRatio; // DriveConstants.DRIVE_GEAR_RATIO;
     rotatorMotorConfig.Slot0.kP = TurretConstants.ROTATOR_P;
     rotatorMotorConfig.Slot0.kI = TurretConstants.ROTATOR_I;
     rotatorMotorConfig.Slot0.kD = TurretConstants.ROTATOR_D;
@@ -52,17 +61,22 @@ public class TurretSub extends SubsystemBase {
     shooterMotor = new TalonFX(TurretConstants.SHOOTER_CANID);
     shooterMotorConfig = new TalonFXConfiguration();
     shooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake; // Coast?
+    shooterMotorConfig.Feedback.SensorToMechanismRatio = TurretConstants.shooterMotorRatio;
     shooterMotor.getConfigurator().apply(shooterMotorConfig);
 
     // Controls the pitch of the shooter, by changing the angle of hood
     hoodMotor = new TalonFX(TurretConstants.SHOOTER_CANID);
     hoodMotorConfig = new TalonFXConfiguration();
     hoodMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    hoodMotorConfig.Feedback.SensorToMechanismRatio = 1;
+    hoodMotorConfig.Feedback.SensorToMechanismRatio = TurretConstants.hoodMotorRatio;
     hoodMotorConfig.Slot0.kP = TurretConstants.HOOD_P;
     hoodMotorConfig.Slot0.kI = TurretConstants.HOOD_I;
     hoodMotorConfig.Slot0.kD = TurretConstants.HOOD_D;
     hoodMotor.getConfigurator().apply(hoodMotorConfig);
+
+    rotatorMotorSim = rotatorMotor.getSimState();
+    shooterMotorSim = shooterMotor.getSimState();
+    hoodMotorSim = hoodMotor.getSimState();
 
     setupSmartDash();
   }
@@ -106,7 +120,9 @@ public class TurretSub extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     // TODO: handle simulation (doesn't have whole module support like the swerve module)
-    
+    rotatorMotorSim.setRawRotorPosition(simRotatorAngle / TurretConstants.rotatorMotorRatio);
+    shooterMotorSim.setRotorVelocity(simShooterSpeed / TurretConstants.shooterMotorRatio);
+    hoodMotorSim.setRawRotorPosition(simHoodAngle / TurretConstants.hoodMotorRatio);
   }
 
   public void setupSmartDash() {
@@ -123,5 +139,18 @@ public class TurretSub extends SubsystemBase {
         builder.addDoubleProperty("Shooter Power", () -> Robot.isSimulation() ? simShooterSpeed : shooterMotor.get(), null);
       }
     });
+  }
+
+
+  
+  @Override
+  public void periodic() {
+    Subsystems.nav.drawFieldObject("Turret", 
+        new Pose2d(
+            TurretTargettingCalc.turretTranslation.getTranslation().toTranslation2d(), 
+            Rotation2d.fromRadians(getRotatorAngle().in(Radians))
+                .plus(Subsystems.nav.getPose().getRotation())), 
+        true);
+    
   }
 }
