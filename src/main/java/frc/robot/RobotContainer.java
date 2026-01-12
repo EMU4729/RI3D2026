@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -15,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AimAtTargetCommand;
+import frc.robot.commands.ShootAtTargetCommand;
 import frc.robot.commands.auto.AutoProvider;
 import frc.robot.commands.teleop.TeleopProvider;
 
@@ -66,6 +68,7 @@ public class RobotContainer {
         .onTrue(new InstantCommand(Subsystems.nav::zeroDriveHeading, Subsystems.drive));
 
     OI.pilot.b().whileTrue(new AimAtTargetCommand());
+    OI.pilot.y().whileTrue(new ShootAtTargetCommand(MetersPerSecond.of(1)));
   }
 
   /**

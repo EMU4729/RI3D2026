@@ -9,6 +9,9 @@ public class TurretConstants {
   public static final Integer ROTATOR_CANID = 1;
   public static final Integer SHOOTER_CANID = 2;
   public static final Integer HOOD_CANID    = 3;
+
+  public static final int FEEDER_MOTOR_1_CANID = 8;
+  public static final int FEEDER_MOTOR_2_CANID = 9;
   
   // TODO: Tune these
   // PID values for rotator and hood
