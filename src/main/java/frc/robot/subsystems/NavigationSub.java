@@ -10,12 +10,16 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 //import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Time;
@@ -105,6 +109,7 @@ public class NavigationSub extends SubsystemBase {
     }
   }
 
+  private TargetingSub ts = new TargetingSub();
   private short logRateCounter = 0;
   @Override
   public void periodic() {
@@ -121,6 +126,8 @@ public class NavigationSub extends SubsystemBase {
       LogPoseYaw.append(pose.getRotation().getRadians());
       LogPoseDriveYaw.append(getDriveHeading().in(Radians));
     }
+
+    ts.calcTurret();
   }
 
   /**
@@ -133,14 +140,10 @@ public class NavigationSub extends SubsystemBase {
 
     for (final var cam : photon.cams) {
       cam.getEstimatedPose()
-          .ifPresentOrElse(
+          .ifPresent(
             (visionResult) -> {
             final var visionPose = visionResult.estimatedPose.toPose2d();
             poseEstimator.addVisionMeasurement(visionPose, visionResult.timestampSeconds);
-            PhotonCameraPoseEstimator.decreaseTollerance();
-          },
-          ()->{
-            PhotonCameraPoseEstimator.increaseTollerance();
           });
     }
     
@@ -262,16 +265,24 @@ public class NavigationSub extends SubsystemBase {
   }
 
   /**
+   * @deprecated
    * @return the current translational speed of the robot (angle irrelevant) (m/s)
+   * 
    */
   public double getTranslationAngle() {
     final var speeds = getChassisSpeeds();
     return Math.atan2(speeds.vyMetersPerSecond, speeds.vxMetersPerSecond);
   }
 
+  public void drawFieldObject(String key, Pose2d position, boolean robotRelative){
+    if (robotRelative){
+      position = getPose().plus(new Transform2d(position.getTranslation(), position.getRotation()));
+    }
+    field.getObject(key).setPose(position);
+  }
+
   Translation2d simulationPeriodicLastRobotLocal = new Translation2d();
   double simulationPeriodicLastVel = 0;
-
   @Override
   public void simulationPeriodic() {
     final var speeds = getDesiredChassisSpeeds();

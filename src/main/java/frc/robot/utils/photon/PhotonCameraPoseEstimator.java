@@ -3,6 +3,10 @@ package frc.robot.utils.photon;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 
+import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import javax.tools.StandardJavaFileManager.PathFactory;
@@ -24,7 +28,9 @@ import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Subsystems;
 import frc.robot.constants.DriveConstants;
 
@@ -87,7 +93,16 @@ public class PhotonCameraPoseEstimator {
    * @return the new currently estimated pose
    */
   public Optional<EstimatedRobotPose> getEstimatedPose() {
-    return filter(log(getLatestResult().flatMap(poseEstimator::update)));
+    System.out.println(distanceTol);
+    Optional<PhotonPipelineResult> latestResult = getLatestResult();
+
+    if (latestResult.isEmpty()) return Optional.empty();
+    
+    Optional<EstimatedRobotPose> res = filter(log(latestResult.flatMap(poseEstimator::update)));
+    if (res.isEmpty()){increaseTollerance();}
+    else {decreaseTollerance();}
+
+    return res;
   }
 
   private boolean wasConnected = true;
@@ -162,10 +177,30 @@ public class PhotonCameraPoseEstimator {
     
   }
   public static void decreaseTollerance(){
-    distanceTol = Math.max(distanceTol-distanceTolStep, distanceTolBase);
-    heightTol   = Math.max(heightTol-heightTolStep, heightTolBase);
+    distanceTol = Math.max(distanceTol-5*distanceTolStep, distanceTolBase);
+    heightTol   = Math.max(heightTol-5*heightTolStep, heightTolBase);
 
   }
+
+  /*public List<PhotonTrackedTarget> filterHubTargets(Optional<PhotonPipelineResult> result){
+    Optional<Alliance> alliance = DriverStation.getAlliance();
+    if (alliance.isEmpty() || result.isEmpty()){return new ArrayList<PhotonTrackedTarget>();}
+    
+    List<PhotonTrackedTarget> matchingTargets = new ArrayList<PhotonTrackedTarget>() {};
+    List<Integer> hubTags;
+    if (alliance.get() == Alliance.Red){
+      hubTags = Arrays.asList(new Integer[]{2,3,4,5,8,9,10,11});
+    } else {
+      hubTags = Arrays.asList(new Integer[]{18,19,20,21,24,25,26,27});
+    }
+    
+    for (PhotonTrackedTarget res : result.get().targets){
+      if (hubTags.contains(res.fiducialId)){
+        matchingTargets.add(res);
+      }
+    }
+    return matchingTargets;
+  }*/
 
   private Optional<EstimatedRobotPose> log(Optional<EstimatedRobotPose> OptPose){
     OptPose.ifPresent((pose)->{
