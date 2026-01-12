@@ -26,7 +26,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Subsystems;
 
 public class TurretTargettingCalc{
-  private final Transform3d turretTranslation = new Transform3d(new Translation3d(0.3,0.3,0.4), new Rotation3d(0,0,0));
+  public static final Transform3d turretTranslation = new Transform3d(new Translation3d(0.3,0.3,0.4), new Rotation3d(0,0,0));
 
   private final List<DistanceSample> samples = Arrays.asList(
       new DistanceSample(0.4, Degrees.of(85), Meters.of(0)),
@@ -49,11 +49,6 @@ public class TurretTargettingCalc{
                       rangingCommand.hoodAngle.in(Degrees)
                       );*/
 
-    Subsystems.nav.drawFieldObject("Turret", 
-        new Pose2d(
-            turretTranslation.getTranslation().toTranslation2d(), 
-            transformToTarget.getRotation().toRotation2d().plus(Subsystems.nav.getPose().getRotation())), 
-        true);
 
     return new TurretCommand(Radians.of(transformToTarget.getRotation().getZ()), 
                             rangingCommand.power, 

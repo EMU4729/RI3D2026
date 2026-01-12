@@ -30,4 +30,8 @@ public class TurretConstants {
 
   public static final Angle MIN_HOOD_ANGLE = Radians.of(0);
   public static final Angle MAX_HOOD_ANGLE = Radians.of(Math.PI / 4);
+
+  public static final double rotatorMotorRatio = 1;
+  public static final double shooterMotorRatio = 1;
+  public static final double hoodMotorRatio = 1;
 }
