@@ -32,7 +32,8 @@ public class TurretTargettingCalc{
 
   private final List<DistanceSample> samples = Arrays.asList(
       new DistanceSample(RotationsPerSecond.of(60), Degrees.of(85), Meters.of(0)),
-      new DistanceSample(RotationsPerSecond.of(70), Degrees.of(45), Meters.of(15))
+      new DistanceSample(RotationsPerSecond.of(90), Degrees.of(85), Meters.of(2.65)),
+      new DistanceSample(RotationsPerSecond.of(105), Degrees.of(45), Meters.of(15))
   );
 
   public TurretTargettingCalc(){

@@ -44,7 +44,7 @@ import frc.robot.utils.TurretTargettingCalc;
 import frc.robot.utils.pathplanner.AutoBuilderFix;
 
 public class NavigationSub extends SubsystemBase {
-  private final static ADIS16470_IMU imu = new ADIS16470_IMU();
+  private final static ADIS16470_IMU imu = new ADIS16470_IMU(IMUAxis.kX, IMUAxis.kY, IMUAxis.kZ);
   private final Field2d field = new Field2d();
   private final ADIS16470_IMUSim imuSim = new ADIS16470_IMUSim(imu);
   private Pose2d poseSim = new Pose2d();
@@ -146,7 +146,7 @@ public class NavigationSub extends SubsystemBase {
     }
     
     
-    normaliseOdometry();
+    //normaliseOdometry(); //broken
     
     field.setRobotPose(getPose());
   }
@@ -154,20 +154,20 @@ public class NavigationSub extends SubsystemBase {
   /** @return the currently estimated pose of the robot. */
   public Pose2d getPose() {
 
-    return poseEstimator.getEstimatedPosition();
+    return normaliseOdometry(poseEstimator.getEstimatedPosition());
   }
 
   /**
    * Normalises odometry so that the robot's pose is within field bounds.
    */
-  public void normaliseOdometry() {
-    Translation2d currentPose = getPose().getTranslation();
+  public Pose2d normaliseOdometry(Pose2d pose) {
+    Translation2d currentLoc = pose.getTranslation();
     Translation2d minPose = DriveConstants.FIELD_BOUNDS[0];
     Translation2d maxPose = DriveConstants.FIELD_BOUNDS[1];
-    currentPose = new Translation2d(
-        Math.max(Math.min(currentPose.getX(), maxPose.getX()), minPose.getX()),
-        Math.max(Math.min(currentPose.getY(), maxPose.getY()), minPose.getY()));
-    poseEstimator.resetTranslation(currentPose);
+    currentLoc = new Translation2d(
+        Math.max(Math.min(currentLoc.getX(), maxPose.getX()), minPose.getX()),
+        Math.max(Math.min(currentLoc.getY(), maxPose.getY()), minPose.getY()));
+    return new Pose2d(currentLoc, pose.getRotation());
   }
 
   /**

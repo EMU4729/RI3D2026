@@ -15,6 +15,7 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -70,6 +71,7 @@ public class TurretSub extends SubsystemBase {
     rotatorMotorConfig.Slot0.kP = TurretConstants.ROTATOR_P;
     rotatorMotorConfig.Slot0.kI = TurretConstants.ROTATOR_I;
     rotatorMotorConfig.Slot0.kD = TurretConstants.ROTATOR_D;
+    rotatorMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     // rotatorMotorConfig.SoftwareLimitSwitch.
     rotatorMotor.getConfigurator().apply(rotatorMotorConfig);
     rotatorController = new PositionVoltage(0).withSlot(0);
