@@ -6,7 +6,11 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Velocity;
 
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -32,13 +36,16 @@ public class TurretSub extends SubsystemBase {
   private final TalonFX hoodMotor;
   private final TalonFXConfiguration hoodMotorConfig;
 
+  private final PositionVoltage rotatorController;
+  private final VelocityVoltage shooterController;
+  private final PositionVoltage hoodController;
+
   private double simRotatorAngle;
   private double simRotatorSpeed = 0;
   private double simShooterSpeed;
   private double simHoodAngle;
 
   private final TalonFXSimState rotatorMotorSim;
-  private final TalonFXSimState shooterMotorSim;
   private final TalonFXSimState hoodMotorSim;
   
   /** Creates new TurretSub */
@@ -57,15 +64,21 @@ public class TurretSub extends SubsystemBase {
     rotatorMotorConfig.Slot0.kD = TurretConstants.ROTATOR_D;
     // rotatorMotorConfig.SoftwareLimitSwitch.
     rotatorMotor.getConfigurator().apply(rotatorMotorConfig);
+    rotatorController = new PositionVoltage(0).withSlot(0);
 
     shooterMotor = new TalonFX(TurretConstants.SHOOTER_CANID);
     shooterMotorConfig = new TalonFXConfiguration();
-    shooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake; // Coast?
+    shooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast; // Coast?
     shooterMotorConfig.Feedback.SensorToMechanismRatio = TurretConstants.shooterMotorRatio;
+    shooterMotorConfig.Slot0.kP = TurretConstants.SHOOTER_P;
+    shooterMotorConfig.Slot0.kI = TurretConstants.SHOOTER_I;
+    shooterMotorConfig.Slot0.kD = TurretConstants.SHOOTER_D;
     shooterMotor.getConfigurator().apply(shooterMotorConfig);
+    shooterController = new VelocityVoltage(0).withSlot(0);
+
 
     // Controls the pitch of the shooter, by changing the angle of hood
-    hoodMotor = new TalonFX(TurretConstants.SHOOTER_CANID);
+    hoodMotor = new TalonFX(TurretConstants.HOOD_CANID);
     hoodMotorConfig = new TalonFXConfiguration();
     hoodMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     hoodMotorConfig.Feedback.SensorToMechanismRatio = TurretConstants.hoodMotorRatio;
@@ -73,9 +86,10 @@ public class TurretSub extends SubsystemBase {
     hoodMotorConfig.Slot0.kI = TurretConstants.HOOD_I;
     hoodMotorConfig.Slot0.kD = TurretConstants.HOOD_D;
     hoodMotor.getConfigurator().apply(hoodMotorConfig);
+    hoodController = new PositionVoltage(0).withSlot(0);
+
 
     rotatorMotorSim = rotatorMotor.getSimState();
-    shooterMotorSim = shooterMotor.getSimState();
     hoodMotorSim = hoodMotor.getSimState();
 
     setupSmartDash();
@@ -84,7 +98,7 @@ public class TurretSub extends SubsystemBase {
   // TODO: not sure whether this will automatically use the PID control, or need to set up close loop control
   // Setting this up like a linear system may work better in terms of preventing overrotation :)
   public void setRotatorAngle(Angle newRotatorAngle) {
-    simRotatorAngle = newRotatorAngle.in(Radians);
+    simRotatorAngle = newRotatorAngle.in(Rotations);
     // simRotatorSpeed = 0; // TODO: start simulating this once PID is simulated
     rotatorMotor.setControl(new PositionVoltage(newRotatorAngle));
   }
@@ -96,15 +110,17 @@ public class TurretSub extends SubsystemBase {
   // Set the amount of power into the shooter wheels (-1.0 to 1.0)
   public void setShooterSpeed(double shooterSpeed) {
     simShooterSpeed = shooterSpeed;
-    shooterMotor.set(shooterSpeed);
+    shooterMotor.setControl(
+        shooterController.withVelocity(RotationsPerSecond.of(shooterSpeed)));;
   }
 
   public double getShooterSpeed() {
-    return shooterMotor.get();
+    if(Robot.isSimulation()){return simShooterSpeed;}
+    return shooterMotor.getVelocity().getValue().in(RotationsPerSecond);
   }
 
   public void setHoodAngle(Angle newHoodAngle) {
-    simHoodAngle = newHoodAngle.in(Radians);
+    simHoodAngle = newHoodAngle.in(Rotations);
     hoodMotor.setControl(new PositionVoltage(newHoodAngle));
   }
 
@@ -121,7 +137,6 @@ public class TurretSub extends SubsystemBase {
   public void simulationPeriodic() {
     // TODO: handle simulation (doesn't have whole module support like the swerve module)
     rotatorMotorSim.setRawRotorPosition(simRotatorAngle / TurretConstants.rotatorMotorRatio);
-    shooterMotorSim.setRotorVelocity(simShooterSpeed / TurretConstants.shooterMotorRatio);
     hoodMotorSim.setRawRotorPosition(simHoodAngle / TurretConstants.hoodMotorRatio);
   }
 
@@ -136,7 +151,8 @@ public class TurretSub extends SubsystemBase {
         
         builder.addDoubleProperty("Hood Angle (rad)", () -> Robot.isSimulation() ? simHoodAngle : hoodMotor.getPosition().getValueAsDouble(), null);
      
-        builder.addDoubleProperty("Shooter Power", () -> Robot.isSimulation() ? simShooterSpeed : shooterMotor.get(), null);
+        builder.addDoubleProperty("Shooter Power", () -> getShooterSpeed(), null);
+        builder.addDoubleProperty("sim shooter Power", () -> simShooterSpeed, null);
       }
     });
   }
@@ -148,9 +164,7 @@ public class TurretSub extends SubsystemBase {
     Subsystems.nav.drawFieldObject("Turret", 
         new Pose2d(
             TurretTargettingCalc.turretTranslation.getTranslation().toTranslation2d(), 
-            Rotation2d.fromRadians(getRotatorAngle().in(Radians))
-                .plus(Subsystems.nav.getPose().getRotation())), 
+            Rotation2d.fromRadians(getRotatorAngle().in(Radians))),
         true);
-    
   }
 }

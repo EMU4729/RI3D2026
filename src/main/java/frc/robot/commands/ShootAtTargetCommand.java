@@ -19,7 +19,7 @@ public class ShootAtTargetCommand extends Command {
   
   @Override
   public void initialize() {
-    if (Math.abs(Subsystems.turret.getShooterSpeed()) > 0.01){
+    if (Math.abs(Subsystems.turret.getShooterSpeed()) > 3){
       Subsystems.feeder.setSpeed(speed);
     }
   }

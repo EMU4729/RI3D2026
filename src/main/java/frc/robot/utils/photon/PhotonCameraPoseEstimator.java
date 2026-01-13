@@ -93,7 +93,6 @@ public class PhotonCameraPoseEstimator {
    * @return the new currently estimated pose
    */
   public Optional<EstimatedRobotPose> getEstimatedPose() {
-    System.out.println(distanceTol);
     Optional<PhotonPipelineResult> latestResult = getLatestResult();
 
     if (latestResult.isEmpty()) return Optional.empty();

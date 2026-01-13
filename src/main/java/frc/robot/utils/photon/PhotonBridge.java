@@ -18,7 +18,7 @@ public class PhotonBridge {
   private VisionSystemSim visionSim;
 
   public PhotonBridge() {
-    final var fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    final var fieldLayout = AprilTagFieldLayout.loadFromResource(null);
 
     final var camProps = new SimCameraProperties();
     camProps.setCalibration(

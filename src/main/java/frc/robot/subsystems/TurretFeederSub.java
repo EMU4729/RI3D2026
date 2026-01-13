@@ -24,7 +24,7 @@ import frc.robot.constants.TurretConstants;
 
 public class TurretFeederSub extends SubsystemBase {
   private TalonFX motor1 = new TalonFX(TurretConstants.FEEDER_MOTOR_1_CANID);
-  private TalonFX motor2 = new TalonFX(TurretConstants.FEEDER_MOTOR_1_CANID);
+  private TalonFX motor2 = new TalonFX(TurretConstants.FEEDER_MOTOR_2_CANID);
 
   private final VelocityVoltage feederController1;
   private final VelocityVoltage feederController2;
@@ -44,7 +44,7 @@ public class TurretFeederSub extends SubsystemBase {
     TalonFXConfiguration motorConfig = new TalonFXConfiguration();
     motorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     motorConfig.Feedback.SensorToMechanismRatio = 1;
-    motorConfig.Slot0.kP = 1;
+    motorConfig.Slot0.kP = 0.1;
     motorConfig.Slot0.kI = 0;
     motorConfig.Slot0.kD = 0;
     motorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;

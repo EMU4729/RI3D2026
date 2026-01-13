@@ -29,8 +29,8 @@ public class TurretTargettingCalc{
   public static final Transform3d turretTranslation = new Transform3d(new Translation3d(0.3,0.3,0.4), new Rotation3d(0,0,0));
 
   private final List<DistanceSample> samples = Arrays.asList(
-      new DistanceSample(0.4, Degrees.of(85), Meters.of(0)),
-      new DistanceSample(1, Degrees.of(45), Meters.of(15))
+      new DistanceSample(10, Degrees.of(85), Meters.of(0)),
+      new DistanceSample(20, Degrees.of(45), Meters.of(15))
   );
 
   public TurretTargettingCalc(){
@@ -103,8 +103,7 @@ public class TurretTargettingCalc{
 
     Rotation2d targetYaw =  
         targetLoc
-        .minus(robotPose.getTranslation()).toTranslation2d().getAngle()
-        .minus(robotPose.getRotation().toRotation2d());
+        .minus(robotPose.getTranslation()).toTranslation2d().getAngle();
 
     Pose3d targetPose = new Pose3d(targetLoc, new Rotation3d(0,0,targetYaw.getRadians()));
     //System.out.println(targetLoc.minus(robotPose.getTranslation()).toTranslation2d().getAngle().getDegrees() +" "+

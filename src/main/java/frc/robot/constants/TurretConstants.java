@@ -15,12 +15,16 @@ public class TurretConstants {
   
   // TODO: Tune these
   // PID values for rotator and hood
-  public static final double ROTATOR_P = 1.0;
-  public static final double ROTATOR_I = 0.0;
+  public static final double ROTATOR_P = 10.0;
+  public static final double ROTATOR_I = 0.1;
   public static final double ROTATOR_D = 0.0;
 
-  public static final double HOOD_P = 1.0;
-  public static final double HOOD_I = 0.0;
+  public static final double SHOOTER_P = 0.3;
+  public static final double SHOOTER_I = 1.0;
+  public static final double SHOOTER_D = 0.0;
+
+  public static final double HOOD_P = 5.0;
+  public static final double HOOD_I = 1.0;
   public static final double HOOD_D = 0.0;
   // no values for shooter as this is planned to be driven using a lookup table + power value
 
@@ -31,7 +35,7 @@ public class TurretConstants {
   public static final Angle MIN_HOOD_ANGLE = Radians.of(0);
   public static final Angle MAX_HOOD_ANGLE = Radians.of(Math.PI / 4);
 
-  public static final double rotatorMotorRatio = 1;
-  public static final double shooterMotorRatio = 1;
+  public static final double rotatorMotorRatio = 74/12;
+  public static final double shooterMotorRatio = 22/12;
   public static final double hoodMotorRatio = 1;
 }
