@@ -1,5 +1,7 @@
 package frc.robot.utils.photon;
 
+import java.io.IOException;
+
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 
@@ -18,8 +20,12 @@ public class PhotonBridge {
   private VisionSystemSim visionSim;
 
   public PhotonBridge() {
-    final var fieldLayout = AprilTagFieldLayout.loadFromResource(null);
-
+    AprilTagFieldLayout fieldLayout;
+    try{
+      fieldLayout = new AprilTagFieldLayout("/media/2025-reefscape-welded.json");
+    } catch (IOException e){
+      fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    } 
     final var camProps = new SimCameraProperties();
     camProps.setCalibration(
         VisionConstants.CAM_RES_WIDTH,

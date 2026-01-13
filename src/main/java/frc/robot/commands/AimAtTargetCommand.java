@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems;
@@ -37,7 +38,7 @@ public class AimAtTargetCommand extends Command{
 
   @Override
   public void end(boolean interrupted) {
-    turret.setShooterSpeed(0.0);
+    turret.setShooterSpeed(RotationsPerSecond.of(0.0));
     turret.setRotatorAngle(Degrees.of(0));
     turret.setHoodAngle(Degrees.of(0));
   }

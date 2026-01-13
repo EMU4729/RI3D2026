@@ -4,6 +4,7 @@ package frc.robot.utils;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +20,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -29,8 +31,8 @@ public class TurretTargettingCalc{
   public static final Transform3d turretTranslation = new Transform3d(new Translation3d(0.3,0.3,0.4), new Rotation3d(0,0,0));
 
   private final List<DistanceSample> samples = Arrays.asList(
-      new DistanceSample(10, Degrees.of(85), Meters.of(0)),
-      new DistanceSample(20, Degrees.of(45), Meters.of(15))
+      new DistanceSample(RotationsPerSecond.of(60), Degrees.of(85), Meters.of(0)),
+      new DistanceSample(RotationsPerSecond.of(70), Degrees.of(45), Meters.of(15))
   );
 
   public TurretTargettingCalc(){
@@ -78,17 +80,17 @@ public class TurretTargettingCalc{
     }
     if(aboveError == Double.MAX_VALUE || belowError == Double.MAX_VALUE){
       DataLogManager.log("TargetingSub : target out of range");
-      return new DistanceSample(0.0, Degrees.of(0), dist);
+      return new DistanceSample(RotationsPerSecond.of(0.0), Degrees.of(0), dist);
     }
 
     double t = (dist.in(Meters) - nearestBelow.distance.in(Meters)) / 
         (nearestAbove.distance.in(Meters) - nearestBelow.distance.in(Meters));
 
-    double power = MathUtil.interpolate(nearestBelow.power, nearestAbove.power, t);
+    double power = MathUtil.interpolate(nearestBelow.power.in(RotationsPerSecond), nearestAbove.power.in(RotationsPerSecond), t);
     Angle angle = Radians.of(MathUtil.interpolate(nearestBelow.hoodAngle.in(Radians), 
                                                   nearestAbove.hoodAngle.in(Radians), t));
 
-    return new DistanceSample(power, angle, dist);
+    return new DistanceSample(RotationsPerSecond.of(power), angle, dist);
   }
 
   public Transform3d getRRTransform(){
@@ -123,7 +125,7 @@ public class TurretTargettingCalc{
   }
 
   public static record DistanceSample(
-    double power,
+    AngularVelocity power,
     Angle hoodAngle,
 
     Distance distance){
@@ -131,7 +133,7 @@ public class TurretTargettingCalc{
   }
   public static record TurretCommand(
     Angle turretAngle,
-    double power,
+    AngularVelocity power,
     Angle hoodAngle){
       
   }

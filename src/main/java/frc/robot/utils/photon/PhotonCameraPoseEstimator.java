@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Subsystems;
 import frc.robot.constants.DriveConstants;
 
@@ -79,6 +80,8 @@ public class PhotonCameraPoseEstimator {
         PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
         robotToCam);
     poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.AVERAGE_BEST_TARGETS);
+
+    //SmartDashboard.putNumber("PhotonPrediction/FilterResult", ()->distanceTol, null);
   }
 
   /** @return the robot to camera transform for this camera */
@@ -102,6 +105,10 @@ public class PhotonCameraPoseEstimator {
     else {decreaseTollerance();}
 
     return res;
+  }
+
+  public double getDistanceTol(){
+    return distanceTol;
   }
 
   private boolean wasConnected = true;
@@ -143,8 +150,9 @@ public class PhotonCameraPoseEstimator {
         .getDistance(currentPose.getTranslation());
     double heightError = pose.estimatedPose.getZ();
 
+    DataLogManager.log("Reading:"+distanceTol);
     if ( distanceError > distanceTol) {
-      LogFiltered.append("Distance"); 
+      LogFiltered.append("Distance");
       return Optional.empty();
     }
     if ( Math.abs(heightError) > heightTol) {
@@ -168,6 +176,7 @@ public class PhotonCameraPoseEstimator {
     }
 
     LogFiltered.append("Passed");
+    DataLogManager.log("Pass");
     return OptPose;
   }
   public static void increaseTollerance(){

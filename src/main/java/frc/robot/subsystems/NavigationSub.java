@@ -135,12 +135,12 @@ public class NavigationSub extends SubsystemBase {
    */
   private void updateOdometry() {
     poseEstimator.update(Rotation2d.fromDegrees(imu.getAngle()), Subsystems.drive.getModulePositions());
-
     for (final var cam : photon.cams) {
       cam.getEstimatedPose()
           .ifPresent(
             (visionResult) -> {
             final var visionPose = visionResult.estimatedPose.toPose2d();
+            System.out.println("vp:"+visionPose.getRotation().getDegrees());
             poseEstimator.addVisionMeasurement(visionPose, visionResult.timestampSeconds);
           });
     }
@@ -183,7 +183,7 @@ public class NavigationSub extends SubsystemBase {
           .map(alliance -> alliance == Alliance.Red)
           .orElse(false);
 
-      pose = onRedAlliance ? new Pose2d(8, 4, Rotation2d.kZero) : new Pose2d(8, 4, Rotation2d.k180deg);
+      pose = onRedAlliance ? new Pose2d(1, 4, Rotation2d.kZero) : new Pose2d(15, 4, Rotation2d.k180deg);
     }
 
     if (Robot.isSimulation()){
